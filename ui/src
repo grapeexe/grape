@@ -1,0 +1,723 @@
+local grape = {}
+
+local function generateName(length)
+	local res = ""
+	for i = 1, length do
+		res = res .. string.char(math.random(97, 122))
+	end
+	return res
+end
+
+local function notify(title, text, duration)
+    title = title or "title"
+    text = text or "text"
+    duration = duration or 5
+
+    game:service"StarterGui":SetCore("SendNotification",{
+        Title = title,
+        Text = text,
+        Duration = duration
+    })
+end
+
+function grape:Create(title)
+    title = title or "Title : Example"
+    local player = game:service"Players".LocalPlayer
+    local uis = game:service"UserInputService"
+    local tweenservice = game:service"TweenService"
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Parent = game:service"CoreGui"
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Name = generateName(16)
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "mainFrame"
+    mainFrame.Parent = ScreenGui
+    mainFrame.BackgroundColor3 = Color3.fromRGB(63, 10, 127)
+    mainFrame.BorderColor3 = Color3.fromRGB(63, 10, 127)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Position = UDim2.new(0.374331564, 0, 0.31134972, 0)
+    mainFrame.Size = UDim2.new(0, 328, 0, 246)
+
+    local Frame = Instance.new("Frame")
+    Frame.Parent = mainFrame
+    Frame.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+    Frame.BorderColor3 = Color3.fromRGB(45, 7, 91)
+    Frame.BorderSizePixel = 0
+    Frame.Size = UDim2.new(0, 328, 0, 20)
+
+    local TextLabel = Instance.new("TextLabel")
+    TextLabel.Parent = Frame
+    TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel.BackgroundTransparency = 1.000
+    TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextLabel.BorderSizePixel = 0
+    TextLabel.Size = UDim2.new(0, 101, 0, 20)
+    TextLabel.Font = Enum.Font.Code
+    TextLabel.Text = " "..tostring(title)
+    TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel.TextSize = 14.000
+    TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local ScrollingFrame = Instance.new("ScrollingFrame")
+    ScrollingFrame.Name = "mainScrollingFrame"
+    ScrollingFrame.Parent = mainFrame
+    ScrollingFrame.Active = true
+    ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ScrollingFrame.BackgroundTransparency = 1.000
+    ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ScrollingFrame.BorderSizePixel = 0
+    ScrollingFrame.Position = UDim2.new(0.024390243, 0, 0.109755971, 0)
+    ScrollingFrame.Size = UDim2.new(0, 311, 0, 209)
+    ScrollingFrame.ScrollBarThickness = 0
+
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Parent = ScrollingFrame
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.Padding = UDim.new(0, 2)
+
+    local ghostFrame = Instance.new("Frame")
+    ghostFrame.Name = "ghostFrame"
+    ghostFrame.Parent = ScreenGui
+    ghostFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ghostFrame.BackgroundTransparency = 1.000
+    ghostFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    ghostFrame.BorderSizePixel = 0
+    ghostFrame.Size = UDim2.new(0, 328, 0, 246)
+    ghostFrame.Visible = false
+
+    local UIStroke = Instance.new("UIStroke")
+    UIStroke.Color = Color3.fromRGB(63, 10, 127)
+    UIStroke.Thickness = 2
+    UIStroke.Parent = ghostFrame
+
+    local isHolding = false
+    local isZone = false
+    local dragStart = nil
+    local startPos = nil
+    local endPos = nil
+
+    mainFrame.MouseEnter:Connect(function()
+        isZone = true
+    end)
+
+    mainFrame.MouseLeave:Connect(function()
+        isZone = false
+    end)
+
+    uis.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and isZone then
+            dragStart = uis:GetMouseLocation()
+            startPos = mainFrame.Position
+            isHolding = true
+        end
+    end)    
+
+    uis.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isHolding = false
+        end
+    end)
+
+    game:GetService("RunService").Stepped:Connect(function()
+        if isHolding then
+            local delta = uis:GetMouseLocation() - dragStart
+            local pos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            ghostFrame.Visible = true
+            ghostFrame.Position = pos
+            endPos = pos
+        else
+            ghostFrame.Visible = false
+            if endPos then
+                mainFrame.Position = endPos
+                endPos = nil
+            end
+        end
+    end)
+
+    ScrollingFrame.ChildAdded:Connect(function()
+        local x,y = UIListLayout.AbsoluteContentSize.X,UIListLayout.AbsoluteContentSize.Y
+        ScrollingFrame.CanvasSize = UDim2.new(0, x, 0, y)
+    end)
+
+    ScrollingFrame.ChildRemoved:Connect(function()
+        local x,y = UIListLayout.AbsoluteContentSize.X,UIListLayout.AbsoluteContentSize.Y
+        ScrollingFrame.CanvasSize = UDim2.new(0, x, 0, y)
+    end)
+
+    local instances = {}
+
+    instances.NewTab = function(text)
+        text = text or "Tab : Example"
+        local instances2 = {}
+
+        local ScrollingFrame = Instance.new("ScrollingFrame")
+        ScrollingFrame.Parent = mainFrame
+        ScrollingFrame.Active = true
+        ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        ScrollingFrame.BackgroundTransparency = 1.000
+        ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        ScrollingFrame.BorderSizePixel = 0
+        ScrollingFrame.Position = UDim2.new(0.024390243, 0, 0.109755971, 0)
+        ScrollingFrame.Size = UDim2.new(0, 311, 0, 209)
+        ScrollingFrame.ScrollBarThickness = 0
+        ScrollingFrame.Visible = false
+    
+        local UIListLayout = Instance.new("UIListLayout")
+        UIListLayout.Parent = ScrollingFrame
+        UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        UIListLayout.Padding = UDim.new(0, 2)
+
+        local TextButton = Instance.new("TextButton")
+        TextButton.Parent = ScrollingFrame
+        TextButton.BackgroundColor3 = Color3.fromRGB(39, 1, 85)
+        TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        TextButton.BorderSizePixel = 0
+        TextButton.Size = UDim2.new(0, 311, 0, 24)
+        TextButton.Font = Enum.Font.Code
+        TextButton.Text = " Back"
+        TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TextButton.TextSize = 16.000
+        TextButton.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local UICorner = Instance.new("UICorner")
+        UICorner.CornerRadius = UDim.new(0, 3)
+        UICorner.Parent = TextButton
+        
+        TextButton.MouseButton1Click:Connect(function()
+            for i,v in pairs(mainFrame:GetChildren()) do
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
+            end
+            mainFrame:FindFirstChild("mainScrollingFrame").Visible = true
+        end)
+
+        local TextButton = Instance.new("TextButton")
+        TextButton.Parent = mainFrame:FindFirstChild("mainScrollingFrame")
+        TextButton.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+        TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        TextButton.BorderSizePixel = 0
+        TextButton.Size = UDim2.new(0, 311, 0, 24)
+        TextButton.Font = Enum.Font.Code
+        TextButton.Text = " "..tostring(text)
+        TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TextButton.TextSize = 16.000
+        TextButton.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local UICorner = Instance.new("UICorner")
+        UICorner.CornerRadius = UDim.new(0, 3)
+        UICorner.Parent = TextButton
+
+        TextButton.MouseButton1Click:Connect(function()
+            for i,v in pairs(mainFrame:GetChildren()) do
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
+            end
+            ScrollingFrame.Visible = true
+        end)
+
+        local Icon = Instance.new("ImageLabel")
+        Icon.Name = "Icon"
+        Icon.Parent = TextButton
+        Icon.BackgroundTransparency = 1.000
+        Icon.Position = UDim2.new(0.929260433, 0, 0.0416666679, 0)
+        Icon.Size = UDim2.new(0.257234722, 0, 0.916666687, 0)
+        Icon.Image = "rbxassetid://7072706745"
+
+        local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+        UIAspectRatioConstraint.Parent = Icon
+
+        ScrollingFrame.ChildAdded:Connect(function()
+            local x,y = UIListLayout.AbsoluteContentSize.X,UIListLayout.AbsoluteContentSize.Y
+            ScrollingFrame.CanvasSize = UDim2.new(0, x, 0, y)
+        end)
+    
+        ScrollingFrame.ChildRemoved:Connect(function()
+            local x,y = UIListLayout.AbsoluteContentSize.X,UIListLayout.AbsoluteContentSize.Y
+            ScrollingFrame.CanvasSize = UDim2.new(0, x, 0, y)
+        end)
+
+        instances2.NewLabel = function(text)
+            text = text or "Text : Example"
+            local Updates = {}
+    
+            local TextLabel = Instance.new("TextLabel")
+            TextLabel.Parent = ScrollingFrame
+            TextLabel.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            TextLabel.BorderColor3 = Color3.fromRGB(45, 7, 91)
+            TextLabel.BorderSizePixel = 0
+            TextLabel.Size = UDim2.new(0, 311, 0, 24)
+            TextLabel.Font = Enum.Font.Code
+            TextLabel.Text = " "..tostring(text)
+            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.TextSize = 16.000
+            TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = TextLabel
+    
+            function Updates.Update(text)
+                text = text or "Text : Example"
+                TextLabel.Text = " "..tostring(text)
+            end
+    
+            return Updates
+        end
+    
+        instances2.NewButton = function(text, suggestion, callback)
+            text = text or "Button : Example"
+            suggestion = suggestion or "Suggestion : Example"
+            callback = callback or function() end
+    
+            local TextButton = Instance.new("TextButton")
+            TextButton.Parent = ScrollingFrame
+            TextButton.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            TextButton.BorderSizePixel = 0
+            TextButton.Size = UDim2.new(0, 311, 0, 24)
+            TextButton.Font = Enum.Font.Code
+            TextButton.Text = " "..tostring(text)
+            TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextButton.TextSize = 16.000
+            TextButton.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = TextButton
+            
+            local Icon = Instance.new("ImageButton")
+            Icon.Name = "Icon"
+            Icon.Parent = TextButton
+            Icon.BackgroundTransparency = 1.000
+            Icon.Position = UDim2.new(0.929260433, 0, 0.0416666679, 0)
+            Icon.Size = UDim2.new(0.257234722, 0, 0.916666687, 0)
+            Icon.Image = "rbxassetid://7072978559"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = Icon
+    
+            TextButton.MouseButton1Click:Connect(callback)
+    
+            Icon.MouseButton1Click:Connect(function()
+                notify("Suggestion", suggestion, 10)
+            end)
+        end
+        
+        instances2.NewToggle = function(text, suggestion, isOn, callback)
+            text = text or "Toggle : Example"
+            suggestion = suggestion or "Suggestion : Example"
+            isOn = isOn or false
+            callback = callback or function() end
+    
+            local Updates = {}
+            local on = Color3.fromRGB(0,255,0)
+            local off = Color3.fromRGB(255,0,0)
+    
+            local TextButton = Instance.new("TextButton")
+            TextButton.Parent = ScrollingFrame
+            TextButton.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            TextButton.BorderSizePixel = 0
+            TextButton.Size = UDim2.new(0, 311, 0, 24)
+            TextButton.Font = Enum.Font.Code
+            TextButton.Text = " "..tostring(text)
+            TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextButton.TextSize = 16.000
+            TextButton.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = TextButton
+    
+            local indicator = Instance.new("Frame")
+            indicator.Name = "indicator"
+            indicator.Parent = TextButton
+            if isOn then
+                indicator.BackgroundColor3 = on
+            else
+                indicator.BackgroundColor3 = off
+            end
+            indicator.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            indicator.BorderSizePixel = 0
+            indicator.Position = UDim2.new(0.710350513, 0, 0.413333893, 0)
+            indicator.Size = UDim2.new(0, 60, 0, 4)
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 9999)
+            UICorner.Parent = indicator
+            
+            local Icon = Instance.new("ImageButton")
+            Icon.Name = "Icon"
+            Icon.Parent = TextButton
+            Icon.BackgroundTransparency = 1.000
+            Icon.Position = UDim2.new(0.929260433, 0, 0.0416666679, 0)
+            Icon.Size = UDim2.new(0.257234722, 0, 0.916666687, 0)
+            Icon.Image = "rbxassetid://7072978559"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = Icon
+    
+            local boolVal = isOn
+            TextButton.MouseButton1Click:Connect(function()
+                boolVal = not boolVal
+                if boolVal then
+                    indicator.BackgroundColor3 = on
+                else
+                    indicator.BackgroundColor3 = off
+                end
+                callback(boolVal)
+            end)
+    
+            Icon.MouseButton1Click:Connect(function()
+                notify("Suggestion", suggestion, 10)
+            end)
+    
+            function Updates.Update(text)
+                TextButton.Text = text
+            end
+    
+            function Updates.toggle()
+                boolVal = not boolVal
+                if boolVal then
+                    indicator.BackgroundColor3 = on
+                else
+                    indicator.BackgroundColor3 = off
+                end
+                callback(boolVal)
+            end
+    
+            return Updates
+        end
+    
+        instances2.NewDropdown = function(text, suggestion, items, callback)
+            text = text or "Dropdown : Sample"
+            suggestion = suggestion or "Suggestion : Example"
+            items = items or {}
+            callback = callback or function() end
+            local Updates = {}
+    
+            local drop = Instance.new("TextButton")
+            drop.Name = "drop"
+            drop.Parent = ScrollingFrame
+            drop.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            drop.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            drop.BorderSizePixel = 0
+            drop.Position = UDim2.new(-0.00321543403, 0, 0.0121951215, 0)
+            drop.Size = UDim2.new(0, 311, 0, 24)
+            drop.Font = Enum.Font.Code
+            drop.Text = " "..text.." : None"
+            drop.TextColor3 = Color3.fromRGB(255, 255, 255)
+            drop.TextSize = 16.000
+            drop.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = drop
+            
+            local Icon = Instance.new("ImageButton")
+            Icon.Name = "Icon"
+            Icon.Parent = drop
+            Icon.BackgroundTransparency = 1.000
+            Icon.Position = UDim2.new(0.92900002, 0, 0.0419999994, 0)
+            Icon.Size = UDim2.new(0.257234722, 0, 0.916666687, 0)
+            Icon.Image = "rbxassetid://7072978559"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = Icon
+            
+            local DropdownObj = Instance.new("Frame")
+            DropdownObj.Name = "DropdownObj"
+            DropdownObj.Parent = ScrollingFrame
+            DropdownObj.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            DropdownObj.BackgroundTransparency = 1.000
+            DropdownObj.BorderColor3 = Color3.fromRGB(45, 7, 91)
+            DropdownObj.BorderSizePixel = 0
+            DropdownObj.Size = UDim2.new(0, 311, 0, -2)
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = DropdownObj
+            
+            local ScrollingFrame = Instance.new("ScrollingFrame")
+            ScrollingFrame.Parent = DropdownObj
+            ScrollingFrame.Active = true
+            ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ScrollingFrame.BackgroundTransparency = 1.000
+            ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            ScrollingFrame.BorderSizePixel = 0
+            ScrollingFrame.Position = UDim2.new(0.0128617361, 0, 0.0454545468, 0)
+            ScrollingFrame.Size = UDim2.new(0, 303, 0, 80)
+            ScrollingFrame.ScrollBarThickness = 0
+            ScrollingFrame.Visible = false
+    
+            local UIListLayout = Instance.new("UIListLayout")
+            UIListLayout.Parent = ScrollingFrame
+            UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            UIListLayout.Padding = UDim.new(0, 2)
+    
+            Icon.MouseButton1Click:Connect(function()
+                notify("Suggestion", suggestion, 10)
+            end)
+    
+            local dropped = false
+            local tweened = nil
+            drop.MouseButton1Click:Connect(function()
+                dropped = not dropped
+                if tweened then
+                    tweened:Cancel()
+                    tweened = nil
+                end
+                
+                if dropped then
+                    DropdownObj.BackgroundTransparency = 0
+                    DropdownObj.Visible = true
+                    tweened = tweenservice:Create(DropdownObj, TweenInfo.new(0.21, Enum.EasingStyle.Quint), {Size=UDim2.new(0, 311, 0, 88)})
+                    tweened:Play()
+                    tweened.Completed:Connect(function()
+                        ScrollingFrame.Visible = true
+                    end)
+                else
+                    ScrollingFrame.Visible = false
+                    tweened = tweenservice:Create(DropdownObj, TweenInfo.new(0.21, Enum.EasingStyle.Quint), {Size=UDim2.new(0, 311, 0, -2)})
+                    tweened:Play()
+                    tweened.Completed:Connect(function()
+                        DropdownObj.BackgroundTransparency = 1
+                        DropdownObj.Visible = false
+                    end)
+                end
+            end)
+    
+            local function branchNewItems(items)
+                for i,v in pairs(ScrollingFrame:GetChildren()) do
+                    if not v:IsA("UIListLayout") then
+                        v:Destroy()
+                    end
+                end
+                for i,v in pairs(items) do
+                    local TextButton = Instance.new("TextButton")
+                    TextButton.Parent = ScrollingFrame
+                    TextButton.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+                    TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                    TextButton.BorderSizePixel = 0
+                    TextButton.Size = UDim2.new(0, 311, 0, 24)
+                    TextButton.Font = Enum.Font.Code
+                    TextButton.Text = " "..tostring(v)
+                    TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    TextButton.TextSize = 16.000
+                    TextButton.TextXAlignment = Enum.TextXAlignment.Left
+                    TextButton.MouseButton1Click:Connect(function()
+                        drop.Text = " "..text.." : "..tostring(v)
+                        callback(v)
+                    end)
+                end
+            end
+    
+            function Updates.Update(items)
+                branchNewItems(items)
+            end
+    
+            branchNewItems(items)
+    
+            return Updates
+        end
+
+        instances2.NewTextbox = function(text, suggestion, stock, callback)
+            text = text or "Text : Example"
+            suggestion = suggestion or "Suggestion : Example"
+            stock = stock or "Text : Example"
+            callback = callback or function() end
+
+            local Frame = Instance.new("Frame")
+            Frame.Parent = ScrollingFrame
+            Frame.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            Frame.BorderColor3 = Color3.fromRGB(45, 7, 91)
+            Frame.BorderSizePixel = 0
+            Frame.Size = UDim2.new(0, 311, 0, 24)
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = Frame
+            
+            local TextLabel = Instance.new("TextLabel")
+            TextLabel.Parent = Frame
+            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.BackgroundTransparency = 1.000
+            TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            TextLabel.BorderSizePixel = 0
+            TextLabel.Size = UDim2.new(0, 70, 0, 24)
+            TextLabel.Font = Enum.Font.Code
+            TextLabel.Text = " "..tostring(text)
+            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.TextSize = 16.000
+            TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local TextBox = Instance.new("TextBox")
+            TextBox.Parent = Frame
+            TextBox.BackgroundColor3 = Color3.fromRGB(63, 10, 127)
+            TextBox.BorderColor3 = Color3.fromRGB(63, 10, 127)
+            TextBox.BorderSizePixel = 0
+            TextBox.Position = UDim2.new(0.569131851, 0, 0.25, 0)
+            TextBox.Size = UDim2.new(0, 102, 0, 12)
+            TextBox.Font = Enum.Font.Code
+            TextBox.Text = stock
+            TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextBox.TextScaled = true
+            TextBox.TextSize = 16.000
+            TextBox.TextWrapped = true
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 2)
+            UICorner.Parent = TextBox
+            
+            local Icon = Instance.new("ImageButton")
+            Icon.Name = "Icon"
+            Icon.Parent = Frame
+            Icon.BackgroundTransparency = 1.000
+            Icon.Position = UDim2.new(0.92900002, 0, 0.0419999994, 0)
+            Icon.Size = UDim2.new(0.257234722, 0, 0.916666687, 0)
+            Icon.Image = "rbxassetid://7072978559"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = Icon
+
+            Icon.MouseButton1Click:Connect(function()
+                notify("Suggestion", suggestion, 10)
+            end)
+
+            TextBox.FocusLost:Connect(function()
+                callback(TextBox.Text)
+            end)
+        end
+
+        instances2.NewValue = function(text, suggestion, incremence, minimum, maximum, set, callback)
+            text = text or "ValueBox : Example"
+            suggestion = suggestion or "Suggestion : Example"
+            incremence = incremence or 1
+            minimum = minimum or 0
+            maximum = maximum or 100
+            set = set or 100
+            callback = callback or function() end
+
+            local Frame = Instance.new("Frame")
+            Frame.Parent = ScrollingFrame
+            Frame.BackgroundColor3 = Color3.fromRGB(45, 7, 91)
+            Frame.BorderColor3 = Color3.fromRGB(45, 7, 91)
+            Frame.BorderSizePixel = 0
+            Frame.Size = UDim2.new(0, 311, 0, 24)
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 3)
+            UICorner.Parent = Frame
+            
+            local TextLabel = Instance.new("TextLabel")
+            TextLabel.Parent = Frame
+            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.BackgroundTransparency = 1.000
+            TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            TextLabel.BorderSizePixel = 0
+            TextLabel.Size = UDim2.new(0, 70, 0, 24)
+            TextLabel.Font = Enum.Font.Code
+            TextLabel.Text = " "..tostring(text)
+            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.TextSize = 16.000
+            TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local TextBox = Instance.new("TextBox")
+            TextBox.Parent = Frame
+            TextBox.BackgroundColor3 = Color3.fromRGB(63, 10, 127)
+            TextBox.BorderColor3 = Color3.fromRGB(63, 10, 127)
+            TextBox.BorderSizePixel = 0
+            TextBox.Position = UDim2.new(0.614147902, 0, 0.25, 0)
+            TextBox.Size = UDim2.new(0, 44, 0, 12)
+            TextBox.Font = Enum.Font.Code
+            TextBox.Text = tostring(set)
+            TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextBox.TextScaled = true
+            TextBox.TextSize = 16.000
+            TextBox.TextWrapped = true
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 2)
+            UICorner.Parent = TextBox
+            
+            local Icon = Instance.new("ImageButton")
+            Icon.Name = "Icon"
+            Icon.Parent = Frame
+            Icon.BackgroundTransparency = 1.000
+            Icon.Position = UDim2.new(0.92900002, 0, 0.0419999994, 0)
+            Icon.Size = UDim2.new(0.257234722, 0, 0.916666687, 0)
+            Icon.Image = "rbxassetid://7072978559"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = Icon
+            
+            local ImageButtonUp = Instance.new("ImageButton")
+            ImageButtonUp.Parent = Frame
+            ImageButtonUp.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ImageButtonUp.BackgroundTransparency = 1.000
+            ImageButtonUp.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            ImageButtonUp.BorderSizePixel = 0
+            ImageButtonUp.Position = UDim2.new(0.787999988, 0, 0.0419999994, 0)
+            ImageButtonUp.Size = UDim2.new(0.256999999, 0, 0.916999996, 0)
+            ImageButtonUp.Image = "rbxassetid://7072983757"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = ImageButtonUp
+            
+            local ImageButtonDown = Instance.new("ImageButton")
+            ImageButtonDown.Parent = Frame
+            ImageButtonDown.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ImageButtonDown.BackgroundTransparency = 1.000
+            ImageButtonDown.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            ImageButtonDown.BorderSizePixel = 0
+            ImageButtonDown.Position = UDim2.new(0.85799998, 0, 0.0419999994, 0)
+            ImageButtonDown.Size = UDim2.new(0.256999999, 0, 0.916999996, 0)
+            ImageButtonDown.Image = "rbxassetid://7072982593"
+            
+            local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+            UIAspectRatioConstraint.Parent = ImageButtonDown
+
+            Icon.MouseButton1Click:Connect(function()
+                notify("Suggestion", suggestion, 10)
+            end)
+
+            ImageButtonUp.MouseButton1Click:Connect(function()
+                if tonumber(set) == maximum then
+                    notify("Error","You've reached maximum.")
+                else
+                    if (tonumber(set) + tonumber(incremence)) >= maximum then
+                        set = maximum
+                    else
+                        set = set + incremence
+                    end
+                end
+                TextBox.Text = set
+                callback(set)
+            end)
+
+            ImageButtonDown.MouseButton1Click:Connect(function()
+                if tonumber(set) == minimum then
+                    notify("Error","You've reached minimum.")
+                else
+                    if (tonumber(set) - tonumber(incremence)) <= minimum then
+                        set = minimum
+                    else
+                        set = set - incremence
+                    end
+                end
+                TextBox.Text = set
+                callback(set)
+            end)
+        end
+
+        return instances2
+    end
+
+    return instances
+end
+
+return grape
